@@ -1877,20 +1877,160 @@
 
             .auth-container {
                 min-height: 100vh;
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                align-items: stretch;
+            }
+
+            .auth-left-section {
+                background: transparent;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                padding: 80px 40px;
+                color: white;
+                position: relative;
+                overflow: hidden;
+                min-height: 100vh;
+            }
+
+            .auth-left-section::before {
+                content: '';
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="10" cy="10" r="2" fill="white" opacity="0.1"/><circle cx="90" cy="20" r="2" fill="white" opacity="0.1"/><circle cx="50" cy="50" r="2" fill="white" opacity="0.1"/><circle cx="80" cy="80" r="2" fill="white" opacity="0.1"/><circle cx="20" cy="90" r="2" fill="white" opacity="0.1"/></svg>');
+                animation: float 6s ease-in-out infinite;
+            }
+
+            .auth-left-content {
+                position: relative;
+                z-index: 1;
+                text-align: center;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                margin-left: 120px;
+                max-width: 420px;
+            }
+
+            .auth-left-icon {
+                width: 120px;
+                height: 120px;
+                background: rgba(255, 255, 255, 0.15);
+                border-radius: 30px;
                 display: flex;
                 align-items: center;
                 justify-content: center;
-                padding: 40px 20px;
+                margin-bottom: 30px;
+                font-size: 60px;
+                backdrop-filter: blur(10px);
+                border: 2px solid rgba(255, 255, 255, 0.2);
+                animation: pulse 2s ease-in-out infinite;
+            }
+
+            @keyframes pulse {
+                0%, 100% {
+                    transform: scale(1);
+                }
+                50% {
+                    transform: scale(1.05);
+                }
+            }
+
+            .auth-left-title {
+                font-size: 36px;
+                font-weight: 700;
+                margin-bottom: 16px;
+                line-height: 1.2;
+            }
+
+            .auth-left-subtitle {
+                font-size: 16px;
+                opacity: 0.9;
+                margin-bottom: 40px;
+                line-height: 1.5;
+                max-width: 350px;
+            }
+
+            .auth-left-features {
+                display: flex;
+                flex-direction: column;
+                gap: 15px;
+                align-items: flex-start;
+                margin-top: 20px;
+            }
+
+            .auth-feature {
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                font-size: 14px;
+            }
+
+            .auth-feature-icon {
+                width: 32px;
+                height: 32px;
+                background: rgba(255, 255, 255, 0.2);
+                border-radius: 8px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 16px;
+            }
+
+            @keyframes float {
+                0%, 100% {
+                    transform: translateY(0px);
+                }
+                50% {
+                    transform: translateY(-20px);
+                }
+            }
+
+            .auth-right-section {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                padding: 40px;
+                background: transparent;
+                min-height: 100vh;
             }
 
             .auth-card {
-                background: var(--card);
+                background: rgba(255, 255, 255, 0.95);
                 border-radius: 24px;
                 padding: 48px;
-                max-width: 480px;
+                max-width: 500px;
                 width: 100%;
                 box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
                 animation: slideUp 0.5s ease;
+                backdrop-filter: blur(10px);
+            }
+
+            @media (max-width: 1024px) {
+                .auth-container {
+                    grid-template-columns: 1fr;
+                }
+
+                .auth-left-section {
+                    padding: 40px 20px;
+                    min-height: 300px;
+                }
+
+                .auth-left-title {
+                    font-size: 28px;
+                }
+
+                .auth-left-icon {
+                    width: 80px;
+                    height: 80px;
+                    font-size: 40px;
+                }
             }
 
             @keyframes slideUp {
@@ -2125,6 +2265,8 @@
         </style>
 
         <div class="auth-container">
+            <!-- Left Section - Form -->
+            <div class="auth-right-section">
             <!-- Sign In Card -->
             <div class="auth-card" id="signInCard">
                 <div class="auth-header">
@@ -2290,6 +2432,34 @@
 
                 <div class="auth-footer">
                     Already have an account? <a href="#" id="switchToSignIn">Sign in</a>
+                </div>
+            </div>
+            </div>
+
+            <!-- Right Section - Design -->
+            <div class="auth-left-section">
+                <div class="auth-left-content">
+                    <div class="auth-left-icon">📋</div>
+                    <div class="auth-left-title">Master Your Time</div>
+                    <div class="auth-left-subtitle">Organize, prioritize, and accomplish your goals with our intelligent deadline management system.</div>
+                    <div class="auth-left-features">
+                        <div class="auth-feature">
+                            <div class="auth-feature-icon">✓</div>
+                            <span>Smart task prioritization</span>
+                        </div>
+                        <div class="auth-feature">
+                            <div class="auth-feature-icon">📅</div>
+                            <span>Real-time deadline tracking</span>
+                        </div>
+                        <div class="auth-feature">
+                            <div class="auth-feature-icon">⚡</div>
+                            <span>Instant notifications</span>
+                        </div>
+                        <div class="auth-feature">
+                            <div class="auth-feature-icon">📊</div>
+                            <span>Progress analytics</span>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
