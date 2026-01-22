@@ -1,0 +1,2551 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Deadline Manager Pro</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            /* Color Palette */
+            --primary: #6366f1;
+            --primary-light: #818cf8;
+            --primary-dark: #4f46e5;
+            --secondary: #06b6d4;
+            --secondary-light: #22d3ee;
+            --accent: #f59e0b;
+            --accent-light: #fbbf24;
+            
+            /* Status Colors */
+            --success: #10b981;
+            --success-light: #d1fae5;
+            --warning: #f59e0b;
+            --warning-light: #fef3c7;
+            --danger: #ef4444;
+            --danger-light: #fee2e2;
+            --info: #3b82f6;
+            --info-light: #dbeafe;
+            
+            /* Background Colors */
+            --bg: #f8fafc;
+            --bg-gradient: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+            --sidebar-bg: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
+            --card: #ffffff;
+            --card-gradient: linear-gradient(145deg, #ffffff 0%, #f8fafc 100%);
+            --card-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            --hover-shadow: 0 20px 40px -15px rgba(99, 102, 241, 0.3);
+            
+            /* Text Colors */
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --text-muted: #94a3b8;
+            --sidebar-text: #cbd5e1;
+            
+            /* Border & Misc */
+            --border: #e2e8f0;
+            --border-light: #f1f5f9;
+            --radius-lg: 24px;
+            --radius-md: 16px;
+            --radius-sm: 12px;
+            --radius-full: 9999px;
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* Dark Theme */
+        [data-theme="dark"] {
+            /* Background Colors */
+            --bg: #0f172a;
+            --bg-gradient: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            --sidebar-bg: linear-gradient(180deg, #0f172a 0%, #020617 100%);
+            --card: #1e293b;
+            --card-gradient: linear-gradient(145deg, #1e293b 0%, #334155 100%);
+            --card-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5), 0 10px 10px -5px rgba(0, 0, 0, 0.3);
+            --hover-shadow: 0 20px 40px -15px rgba(99, 102, 241, 0.5);
+            
+            /* Text Colors */
+            --text-primary: #f1f5f9;
+            --text-secondary: #cbd5e1;
+            --text-muted: #94a3b8;
+            --sidebar-text: #e2e8f0;
+            
+            /* Border & Misc */
+            --border: #334155;
+            --border-light: #1e293b;
+            
+            /* Adjust status colors for dark mode */
+            --success-light: #064e3b;
+            --warning-light: #78350f;
+            --danger-light: #7f1d1d;
+            --info-light: #1e3a8a;
+        }
+
+        /* Dark mode specific overrides for better visibility */
+        [data-theme="dark"] .priority-option {
+            background: var(--card);
+        }
+
+        [data-theme="dark"] .filter-btn {
+            background: var(--card);
+            color: var(--text-primary);
+        }
+
+        [data-theme="dark"] .icon-btn {
+            background: var(--card);
+        }
+
+        [data-theme="dark"] input:focus,
+        [data-theme="dark"] select:focus,
+        [data-theme="dark"] textarea:focus {
+            background: var(--card);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: var(--bg-gradient);
+            color: var(--text-primary);
+            line-height: 1.6;
+            min-height: 100vh;
+            overflow-x: hidden;
+            transition: background 0.3s ease, color 0.3s ease;
+        }
+
+        /* Main Layout */
+        .app-container {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Sidebar Navigation */
+        .sidebar {
+            width: 280px;
+            background: var(--sidebar-bg);
+            color: var(--sidebar-text);
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            height: 100vh;
+            z-index: 1000;
+            box-shadow: 5px 0 20px rgba(0, 0, 0, 0.2);
+            transition: var(--transition);
+            border-right: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .sidebar-header {
+            padding: 32px 24px 24px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            margin-bottom: 16px;
+        }
+
+        .logo-container {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .logo {
+            width: 48px;
+            height: 48px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 24px;
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+        }
+
+        .logo-text h2 {
+            font-family: 'Poppins', sans-serif;
+            font-size: 20px;
+            font-weight: 700;
+            color: white;
+            margin: 0;
+        }
+
+        .logo-text p {
+            font-size: 12px;
+            color: var(--sidebar-text);
+            margin-top: 2px;
+            opacity: 0.8;
+        }
+
+        .nav-section {
+            padding: 0 8px;
+        }
+
+        .section-title {
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #94a3b8;
+            padding: 16px 16px 8px;
+            margin-bottom: 8px;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 16px 20px;
+            color: var(--sidebar-text);
+            text-decoration: none;
+            border-radius: var(--radius-md);
+            margin: 4px 8px;
+            transition: var(--transition);
+            position: relative;
+            overflow: hidden;
+            cursor: pointer;
+        }
+
+        .nav-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            transform: translateX(5px);
+        }
+
+        .nav-item.active {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+        }
+
+        .nav-item.active::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 4px;
+            background: var(--accent);
+        }
+
+        .nav-icon {
+            font-size: 18px;
+            width: 24px;
+            text-align: center;
+        }
+
+        .nav-text {
+            font-weight: 500;
+            flex: 1;
+        }
+
+        .notification-badge {
+            background: var(--danger);
+            color: white;
+            font-size: 10px;
+            font-weight: 600;
+            padding: 2px 8px;
+            border-radius: var(--radius-full);
+            min-width: 18px;
+            text-align: center;
+            display: inline-block;
+        }
+
+        .user-profile {
+            margin-top: auto;
+            padding: 24px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+        }
+
+        .user-info {
+            flex: 1;
+        }
+
+        .user-name {
+            font-weight: 600;
+            color: white;
+            font-size: 14px;
+        }
+
+        .user-status {
+            font-size: 12px;
+            color: var(--success);
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .logout-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            color: var(--sidebar-text);
+            width: 36px;
+            height: 36px;
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .logout-btn:hover {
+            background: rgba(239, 68, 68, 0.2);
+            color: var(--danger);
+        }
+
+        /* Main Content Area */
+        .main-content {
+            flex: 1;
+            margin-left: 280px;
+            padding: 24px;
+            min-height: 100vh;
+            background: var(--bg-gradient);
+        }
+
+        /* Page Content */
+        .page-header {
+            background: var(--card-gradient);
+            border-radius: var(--radius-lg);
+            padding: 28px 32px;
+            margin-bottom: 32px;
+            box-shadow: var(--card-shadow);
+            border: 1px solid rgba(255, 255, 255, 0.8);
+        }
+
+        .page-header h1 {
+            font-family: 'Poppins', sans-serif;
+            font-size: 32px;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 8px;
+        }
+
+        .page-description {
+            color: var(--text-secondary);
+            font-size: 16px;
+        }
+
+        /* Task List Styles */
+        .task-item {
+            background: var(--card);
+            border-radius: var(--radius-md);
+            padding: 16px;
+            margin-bottom: 12px;
+            border-left: 4px solid var(--primary);
+            border: 1px solid var(--border);
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .task-item:hover {
+            transform: translateX(5px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .task-item.selected {
+            background: linear-gradient(90deg, var(--primary-light)10, white);
+            border-left-color: var(--primary);
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.2);
+        }
+
+        .task-item.completed {
+            opacity: 0.7;
+        }
+
+        .task-item.completed .task-title {
+            text-decoration: line-through;
+        }
+
+        .task-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 8px;
+        }
+
+        .task-title {
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .task-date {
+            font-size: 13px;
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .task-status {
+            padding: 4px 10px;
+            border-radius: var(--radius-full);
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: capitalize;
+            white-space: nowrap;
+        }
+
+        .status-completed {
+            background: var(--success-light);
+            color: var(--success);
+        }
+
+        .status-overdue {
+            background: var(--danger-light);
+            color: var(--danger);
+        }
+
+        .status-due-soon {
+            background: var(--warning-light);
+            color: var(--warning);
+        }
+
+        .status-on-track {
+            background: var(--info-light);
+            color: var(--info);
+        }
+
+        .task-priority {
+            padding: 4px 8px;
+            border-radius: var(--radius-sm);
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: capitalize;
+        }
+
+        .priority-low {
+            background: var(--success-light);
+            color: var(--success);
+        }
+
+        .priority-medium {
+            background: var(--warning-light);
+            color: var(--warning);
+        }
+
+        .priority-high {
+            background: var(--danger-light);
+            color: var(--danger);
+        }
+
+        .task-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid var(--border-light);
+        }
+
+        .task-link {
+            color: var(--primary);
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .task-link:hover {
+            text-decoration: underline;
+        }
+
+        .task-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .icon-btn {
+            background: none;
+            border: 1px solid var(--border);
+            width: 32px;
+            height: 32px;
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: var(--transition);
+            color: var(--text-secondary);
+        }
+
+        .icon-btn:hover {
+            background: var(--border-light);
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        .complete-btn:hover {
+            background: var(--success-light);
+            border-color: var(--success);
+            color: var(--success);
+        }
+
+        .delete-btn:hover {
+            background: var(--danger-light);
+            border-color: var(--danger);
+            color: var(--danger);
+        }
+
+        /* Task Details */
+        .task-detail {
+            padding: 20px;
+            background: var(--card);
+            border-radius: var(--radius-md);
+            border: 1px solid var(--border);
+        }
+
+        .detail-row {
+            margin-bottom: 20px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid var(--border-light);
+        }
+
+        .detail-row:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+
+        .detail-label {
+            font-weight: 600;
+            color: var(--text-secondary);
+            font-size: 13px;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .detail-value {
+            color: var(--text-primary);
+            font-size: 15px;
+            font-weight: 500;
+        }
+
+        .detail-actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 24px;
+        }
+
+        .date-badge {
+            padding: 4px 10px;
+            border-radius: var(--radius-full);
+            font-size: 12px;
+            font-weight: 600;
+            margin-left: 8px;
+        }
+
+        .badge-success {
+            background: var(--success-light);
+            color: var(--success);
+        }
+
+        .badge-warning {
+            background: var(--warning-light);
+            color: var(--warning);
+        }
+
+        .badge-danger {
+            background: var(--danger-light);
+            color: var(--danger);
+        }
+
+        .category-badge {
+            padding: 6px 12px;
+            border-radius: var(--radius-md);
+            font-size: 13px;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .extensions-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .extension-item {
+            padding: 8px 12px;
+            background: var(--warning-light);
+            color: var(--warning);
+            border-radius: var(--radius-md);
+            font-size: 13px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .extension-reason {
+            color: var(--text-secondary);
+            font-weight: 400;
+            margin-left: 4px;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-muted);
+        }
+
+        .empty-icon {
+            font-size: 64px;
+            margin-bottom: 16px;
+            opacity: 0.3;
+        }
+
+        .empty-state h3 {
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+        }
+
+        .empty-state p {
+            color: var(--text-muted);
+            font-size: 14px;
+        }
+
+        /* Filter Buttons */
+        .filter-btn {
+            transition: all 0.3s;
+        }
+
+        .filter-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .filter-btn.active {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark)) !important;
+            color: white !important;
+            border-color: var(--primary) !important;
+        }
+
+        /* Priority Selection */
+        .priority-option:hover {
+            background: var(--border-light);
+            transform: translateY(-2px);
+        }
+
+        .priority-option.active {
+            border-color: currentColor !important;
+        }
+
+        .priority-option[data-value="low"].active {
+            background: var(--success-light);
+            border-color: var(--success) !important;
+        }
+
+        .priority-option[data-value="medium"].active {
+            background: var(--warning-light);
+            border-color: var(--warning) !important;
+        }
+
+        .priority-option[data-value="high"].active {
+            background: var(--danger-light);
+            border-color: var(--danger) !important;
+        }
+
+        /* Form Styles */
+        input, select, textarea {
+            background: var(--card);
+            color: var(--text-primary);
+        }
+
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
+        }
+
+        .day-btn:hover {
+            background: var(--primary-light) !important;
+            border-color: var(--primary) !important;
+            color: white;
+        }
+
+        /* Button Hover Effects */
+        .btn-gradient:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(99, 102, 241, 0.4);
+        }
+
+        .btn-outline {
+            background: white;
+            border: 2px solid var(--primary);
+            color: var(--primary);
+        }
+
+        .btn-outline:hover {
+            background: var(--primary);
+            color: white;
+        }
+
+        /* Dashboard Page (Current Launch Page) */
+        .dashboard-content {
+            display: grid;
+            gap: 32px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 20px;
+            margin-bottom: 32px;
+        }
+
+        .stat-card {
+            background: var(--card-gradient);
+            border-radius: var(--radius-md);
+            padding: 24px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.8);
+            position: relative;
+            overflow: hidden;
+            transition: var(--transition);
+            box-shadow: var(--card-shadow);
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .stat-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            z-index: 1;
+        }
+
+        .stat-1 .stat-icon {
+            background: linear-gradient(135deg, var(--success-light), var(--success));
+            color: white;
+        }
+
+        .stat-2 .stat-icon {
+            background: linear-gradient(135deg, var(--warning-light), var(--warning));
+            color: white;
+        }
+
+        .stat-3 .stat-icon {
+            background: linear-gradient(135deg, var(--danger-light), var(--danger));
+            color: white;
+        }
+
+        .stat-4 .stat-icon {
+            background: linear-gradient(135deg, var(--primary-light), var(--primary));
+            color: white;
+        }
+
+        .stat-info h3 {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 4px;
+            color: var(--text-primary);
+        }
+
+        .stat-info p {
+            font-size: 14px;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        /* Calendar Page Styles */
+        .calendar-container {
+            background: var(--card-gradient);
+            border-radius: var(--radius-lg);
+            padding: 32px;
+            box-shadow: var(--card-shadow);
+            border: 1px solid rgba(255, 255, 255, 0.8);
+        }
+
+        .calendar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 32px;
+        }
+
+        .calendar-nav button {
+            background: var(--primary);
+            color: white;
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .calendar-nav button:hover {
+            background: var(--primary-dark);
+        }
+
+        .month-year {
+            font-family: 'Poppins', sans-serif;
+            font-size: 24px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+
+        .calendar-day-header {
+            text-align: center;
+            padding: 12px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            font-size: 14px;
+            background: var(--border-light);
+            border-radius: var(--radius-sm);
+        }
+
+        .calendar-day {
+            aspect-ratio: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: white;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            transition: var(--transition);
+            position: relative;
+            border: 2px solid transparent;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .calendar-day:hover {
+            background: var(--border-light);
+            transform: scale(1.05);
+        }
+
+        .calendar-day.empty {
+            background: transparent;
+            cursor: default;
+        }
+
+        .calendar-day.empty:hover {
+            background: transparent;
+            transform: none;
+        }
+
+        .calendar-day.today {
+            border-color: var(--primary);
+            background: var(--primary-light);
+            color: white;
+            font-weight: 600;
+        }
+
+        .calendar-day.deadline {
+            background: linear-gradient(135deg, var(--danger-light), var(--danger));
+            color: white;
+            font-weight: 600;
+        }
+
+        .calendar-day.deadline::after {
+            content: '!';
+            position: absolute;
+            top: 4px;
+            right: 4px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .calendar-day.has-task {
+            background: linear-gradient(135deg, var(--warning-light), var(--warning));
+            color: var(--text-primary);
+            font-weight: 600;
+        }
+
+        /* Extensions Page */
+        .extensions-container {
+            background: var(--card-gradient);
+            border-radius: var(--radius-lg);
+            padding: 32px;
+            box-shadow: var(--card-shadow);
+            border: 1px solid rgba(255, 255, 255, 0.8);
+        }
+
+        .extension-card {
+            background: white;
+            border-radius: var(--radius-md);
+            padding: 24px;
+            margin-bottom: 20px;
+            border: 1px solid var(--border);
+            transition: var(--transition);
+        }
+
+        .extension-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.05);
+        }
+
+        .extension-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .extension-title {
+            font-weight: 600;
+            font-size: 18px;
+            color: var(--text-primary);
+        }
+
+        .extension-status {
+            padding: 6px 12px;
+            border-radius: var(--radius-full);
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .status-pending {
+            background: var(--warning-light);
+            color: var(--warning);
+        }
+
+        .status-approved {
+            background: var(--success-light);
+            color: var(--success);
+        }
+
+        .status-rejected {
+            background: var(--danger-light);
+            color: var(--danger);
+        }
+
+        /* Notifications Page */
+        .notifications-container {
+            background: var(--card-gradient);
+            border-radius: var(--radius-lg);
+            padding: 32px;
+            box-shadow: var(--card-shadow);
+            border: 1px solid rgba(255, 255, 255, 0.8);
+        }
+
+        .notification-item {
+            background: white;
+            border-radius: var(--radius-md);
+            padding: 20px;
+            margin-bottom: 16px;
+            border-left: 4px solid var(--primary);
+            border: 1px solid var(--border);
+            transition: var(--transition);
+        }
+
+        .notification-item.unread {
+            background: linear-gradient(90deg, var(--info-light) 0%, white 100%);
+            border-left-color: var(--info);
+        }
+
+        .notification-item:hover {
+            transform: translateX(5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.05);
+        }
+
+        .notification-content {
+            display: flex;
+            align-items: flex-start;
+            gap: 16px;
+        }
+
+        .notification-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: var(--radius-md);
+            background: var(--primary-light);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+        }
+
+        .notification-text {
+            flex: 1;
+        }
+
+        .notification-text h4 {
+            font-weight: 600;
+            margin-bottom: 4px;
+            color: var(--text-primary);
+        }
+
+        .notification-text p {
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+
+        .notification-time {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-top: 8px;
+        }
+
+        /* Settings Page */
+        .settings-container {
+            background: var(--card-gradient);
+            border-radius: var(--radius-lg);
+            padding: 32px;
+            box-shadow: var(--card-shadow);
+            border: 1px solid rgba(255, 255, 255, 0.8);
+        }
+
+        .settings-section {
+            margin-bottom: 40px;
+        }
+
+        .settings-section h3 {
+            font-family: 'Poppins', sans-serif;
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 24px;
+            color: var(--text-primary);
+            padding-bottom: 12px;
+            border-bottom: 2px solid var(--border);
+        }
+
+        .setting-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px;
+            background: white;
+            border-radius: var(--radius-md);
+            margin-bottom: 16px;
+            border: 1px solid var(--border);
+        }
+
+        .setting-info h4 {
+            font-weight: 600;
+            margin-bottom: 4px;
+            color: var(--text-primary);
+        }
+
+        .setting-info p {
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        /* Toggle Switch */
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 60px;
+            height: 30px;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: var(--border);
+            transition: .4s;
+            border-radius: 34px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 22px;
+            width: 22px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider {
+            background-color: var(--success);
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(30px);
+        }
+
+        /* Logout Page */
+        .logout-container {
+            background: var(--card-gradient);
+            border-radius: var(--radius-lg);
+            padding: 40px;
+            box-shadow: var(--card-shadow);
+            border: 1px solid rgba(255, 255, 255, 0.8);
+            text-align: center;
+            max-width: 500px;
+            margin: 100px auto;
+        }
+
+        .logout-icon {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--danger-light), var(--danger));
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            margin: 0 auto 24px;
+        }
+
+        .logout-container h2 {
+            font-family: 'Poppins', sans-serif;
+            font-size: 28px;
+            font-weight: 600;
+            margin-bottom: 12px;
+            color: var(--text-primary);
+        }
+
+        .logout-container p {
+            color: var(--text-secondary);
+            margin-bottom: 32px;
+            font-size: 16px;
+        }
+
+        .logout-actions {
+            display: flex;
+            gap: 16px;
+            justify-content: center;
+        }
+
+        /* Buttons */
+        .btn {
+            padding: 12px 24px;
+            border-radius: var(--radius-md);
+            border: none;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(99, 102, 241, 0.4);
+        }
+
+        .btn-secondary {
+            background: var(--border-light);
+            color: var(--text-primary);
+            border: 1px solid var(--border);
+        }
+
+        .btn-secondary:hover {
+            background: var(--border);
+        }
+
+        /* Page Content Transitions */
+        .page-content {
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .page-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Mobile Menu Toggle */
+        .menu-toggle {
+            display: none;
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 1001;
+            background: var(--primary);
+            color: white;
+            border: none;
+            width: 48px;
+            height: 48px;
+            border-radius: var(--radius-md);
+            justify-content: center;
+            align-items: center;
+            font-size: 20px;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+        }
+
+        /* Responsive Design */
+        @media (max-width: 1200px) {
+            .dashboard-content > div[style*="grid-template-columns: 1fr 1fr 1fr"] {
+                grid-template-columns: 1fr !important;
+            }
+        }
+
+        @media (max-width: 1024px) {
+            .sidebar {
+                width: 80px;
+            }
+            
+            .sidebar-header {
+                padding: 24px 12px;
+            }
+            
+            .logo-text,
+            .section-title,
+            .nav-text,
+            .user-info {
+                display: none;
+            }
+            
+            .nav-item {
+                justify-content: center;
+                padding: 16px;
+            }
+            
+            .main-content {
+                margin-left: 80px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                padding: 16px;
+                margin-left: 0;
+            }
+            
+            .stats-grid {
+                grid-template-columns: 1fr !important;
+            }
+            
+            .calendar-grid {
+                gap: 4px;
+            }
+            
+            .calendar-day {
+                font-size: 12px;
+            }
+
+            .menu-toggle {
+                display: flex;
+            }
+
+            .sidebar {
+                transform: translateX(-100%);
+                width: 280px;
+            }
+            
+            .sidebar.active {
+                transform: translateX(0);
+            }
+
+            .logout-actions {
+                flex-direction: column;
+            }
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+        }
+
+        .modal[style*="display: flex"], .modal[style*="display:flex"] {
+            display: flex !important;
+        }
+    </style>
+</head>
+<body>
+    <!-- Mobile Menu Toggle -->
+    <button class="menu-toggle" id="menuToggle">
+        <i class="fas fa-bars"></i>
+    </button>
+
+    <!-- Sidebar Navigation -->
+    <div class="sidebar" id="sidebar" style="display: none;">
+        <div class="sidebar-header">
+            <div class="logo-container">
+                <div class="logo">
+                    <i class="fas fa-calendar-check"></i>
+                </div>
+                <div class="logo-text">
+                    <h2>Deadline Pro</h2>
+                    <p>Manage & Extend Tasks</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="nav-section">
+            <div class="section-title">Main</div>
+            <a href="#dashboard" class="nav-item active" data-page="dashboard">
+                <div class="nav-icon">
+                    <i class="fas fa-home"></i>
+                </div>
+                <div class="nav-text">Dashboard</div>
+            </a>
+            
+            <a href="#calendar" class="nav-item" data-page="calendar">
+                <div class="nav-icon">
+                    <i class="fas fa-calendar-alt"></i>
+                </div>
+                <div class="nav-text">Calendar</div>
+                <div class="notification-badge">3</div>
+            </a>
+        </div>
+
+        <div class="nav-section">
+            <div class="section-title">Tasks</div>
+            <a href="#extend" class="nav-item" data-page="extend">
+                <div class="nav-icon">
+                    <i class="fas fa-clock-rotate-left"></i>
+                </div>
+                <div class="nav-text">Extend Deadline</div>
+            </a>
+        </div>
+
+        <div class="nav-section">
+            <div class="section-title">Account</div>
+            <a href="#notifications" class="nav-item" data-page="notifications">
+                <div class="nav-icon">
+                    <i class="fas fa-bell"></i>
+                </div>
+                <div class="nav-text">Notifications</div>
+                <div class="notification-badge">5</div>
+            </a>
+            
+            <a href="#settings" class="nav-item" data-page="settings">
+                <div class="nav-icon">
+                    <i class="fas fa-cog"></i>
+                </div>
+                <div class="nav-text">Settings</div>
+            </a>
+            
+            <a href="#logout" class="nav-item" data-page="logout">
+                <div class="nav-icon">
+                    <i class="fas fa-sign-out-alt"></i>
+                </div>
+                <div class="nav-text">Logout</div>
+            </a>
+        </div>
+
+        <div class="user-profile">
+            <div class="user-avatar" id="userAvatar">JD</div>
+            <div class="user-info">
+                <div class="user-name">John Doe</div>
+                <div class="user-status">
+                    <i class="fas fa-circle"></i>
+                    Online
+                </div>
+                <div id="userEmail" style="font-size: 11px; color: var(--text-muted); display: none;">user@example.com</div>
+            </div>
+            <button class="logout-btn" id="sidebarLogout">
+                <i class="fas fa-sign-out-alt"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- Main Content Area -->
+    <div class="main-content" style="display: none;">
+        <!-- Dashboard Page (Current Launch Page) -->
+        <div class="page-content active" id="dashboard">
+            <div class="page-header">
+                <h1 id="welcomeMessage">Dashboard</h1>
+                <p class="page-description">Track and manage all your deadlines in one place</p>
+            </div>
+
+            <div class="dashboard-content">
+                <div class="stats-grid">
+                    <div class="stat-card stat-1">
+                        <div class="stat-icon">
+                            <i class="fas fa-check-circle"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3 id="completedCount">12</h3>
+                            <p>Completed Tasks</p>
+                        </div>
+                    </div>
+                    <div class="stat-card stat-2">
+                        <div class="stat-icon">
+                            <i class="fas fa-clock"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3 id="pendingCount">8</h3>
+                            <p>Pending Tasks</p>
+                        </div>
+                    </div>
+                    <div class="stat-card stat-3">
+                        <div class="stat-icon">
+                            <i class="fas fa-exclamation-triangle"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3 id="overdueCount">3</h3>
+                            <p>Overdue Tasks</p>
+                        </div>
+                    </div>
+                    <div class="stat-card stat-4">
+                        <div class="stat-icon">
+                            <i class="fas fa-calendar-plus"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3 id="extensionsCount">5</h3>
+                            <p>Extensions Used</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Task Management Grid -->
+                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 32px; margin-top: 32px;">
+                    <!-- Create Task Column -->
+                    <div>
+                        <div style="background: var(--card-gradient); border-radius: var(--radius-lg); padding: 28px; box-shadow: var(--card-shadow); border: 1px solid rgba(255, 255, 255, 0.8);">
+                            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 24px;">
+                                <div style="width: 40px; height: 40px; background: linear-gradient(135deg, var(--primary), var(--primary-dark)); border-radius: var(--radius-md); display: flex; align-items: center; justify-content: center; color: white; font-size: 20px;">
+                                    <i class="fas fa-plus"></i>
+                                </div>
+                                <h2 style="color: var(--text-primary); margin: 0;">Create Task</h2>
+                            </div>
+
+                            <form id="taskForm">
+                                <div class="form-group" style="margin-bottom: 20px;">
+                                    <label style="display: block; margin-bottom: 8px; font-weight: 500; color: var(--text-primary);">Task Name</label>
+                                    <input type="text" id="taskName" placeholder="Enter task name" required style="width: 100%; padding: 12px; border-radius: var(--radius-md); border: 2px solid var(--border); font-family: inherit; font-size: 14px; transition: all 0.3s;">
+                                </div>
+
+                                <div class="form-group" style="margin-bottom: 20px;">
+                                    <label style="display: block; margin-bottom: 8px; font-weight: 500; color: var(--text-primary);">Due Date</label>
+                                    <input type="date" id="dueDate" required style="width: 100%; padding: 12px; border-radius: var(--radius-md); border: 2px solid var(--border); font-family: inherit; font-size: 14px;">
+                                </div>
+
+                                <div class="form-group" style="margin-bottom: 20px;">
+                                    <label style="display: block; margin-bottom: 8px; font-weight: 500; color: var(--text-primary);">Priority</label>
+                                    <input type="hidden" id="priority" value="medium">
+                                    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;">
+                                        <div class="priority-option" data-value="low" style="padding: 10px; border: 2px solid var(--border); border-radius: var(--radius-md); text-align: center; cursor: pointer; transition: all 0.3s; font-size: 13px; font-weight: 500;">
+                                            <i class="fas fa-flag" style="color: var(--success);"></i><br>Low
+                                        </div>
+                                        <div class="priority-option active" data-value="medium" style="padding: 10px; border: 2px solid var(--warning); border-radius: var(--radius-md); text-align: center; cursor: pointer; transition: all 0.3s; font-size: 13px; font-weight: 500; background: var(--warning-light);">
+                                            <i class="fas fa-flag" style="color: var(--warning);"></i><br>Medium
+                                        </div>
+                                        <div class="priority-option" data-value="high" style="padding: 10px; border: 2px solid var(--border); border-radius: var(--radius-md); text-align: center; cursor: pointer; transition: all 0.3s; font-size: 13px; font-weight: 500;">
+                                            <i class="fas fa-flag" style="color: var(--danger);"></i><br>High
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="form-group" style="margin-bottom: 20px;">
+                                    <label style="display: block; margin-bottom: 8px; font-weight: 500; color: var(--text-primary);">Category</label>
+                                    <select id="category" required style="width: 100%; padding: 12px; border-radius: var(--radius-md); border: 2px solid var(--border); font-family: inherit; font-size: 14px;">
+                                        <option value="work">Work</option>
+                                        <option value="personal">Personal</option>
+                                        <option value="study">Study</option>
+                                        <option value="health">Health</option>
+                                        <option value="other">Other</option>
+                                    </select>
+                                </div>
+
+                                <div class="form-group" style="margin-bottom: 20px;">
+                                    <label style="display: block; margin-bottom: 8px; font-weight: 500; color: var(--text-primary);">Link (Optional)</label>
+                                    <input type="url" id="taskLink" placeholder="https://example.com" style="width: 100%; padding: 12px; border-radius: var(--radius-md); border: 2px solid var(--border); font-family: inherit; font-size: 14px;">
+                                </div>
+
+                                <button type="submit" class="btn btn-gradient" style="width: 100%; background: linear-gradient(135deg, var(--primary), var(--primary-dark)); color: white; padding: 14px; border: none; border-radius: var(--radius-md); font-weight: 600; cursor: pointer; transition: all 0.3s; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                                    <i class="fas fa-plus-circle"></i> Create Task
+                                </button>
+                            </form>
+
+                            <div style="margin-top: 24px; padding-top: 24px; border-top: 1px solid var(--border);">
+                                <h3 style="margin-bottom: 16px; color: var(--text-primary); font-size: 16px;">Extend Deadline</h3>
+                                <div class="extend-deadline-container">
+                                    <div class="form-group" style="margin-bottom: 16px;">
+                                        <label style="display: block; margin-bottom: 8px; font-weight: 500; color: var(--text-primary); font-size: 14px;">Select Task</label>
+                                        <select id="extendTask" style="width: 100%; padding: 10px; border-radius: var(--radius-md); border: 2px solid var(--border); font-family: inherit; font-size: 13px;">
+                                            <option value="">Select a task...</option>
+                                        </select>
+                                    </div>
+
+                                    <div class="form-group" style="margin-bottom: 16px;">
+                                        <label style="display: block; margin-bottom: 8px; font-weight: 500; color: var(--text-primary); font-size: 14px;">Days to Extend</label>
+                                        <div style="display: flex; align-items: center; gap: 8px;">
+                                            <button type="button" class="day-btn minus" style="width: 36px; height: 36px; border: 2px solid var(--border); border-radius: var(--radius-md); background: white; cursor: pointer; display: flex; align-items: center; justify-content: center; font-weight: 600; transition: all 0.3s;">
+                                                <i class="fas fa-minus"></i>
+                                            </button>
+                                            <input type="number" id="extendDays" value="7" min="1" max="30" style="flex: 1; padding: 10px; border-radius: var(--radius-md); border: 2px solid var(--border); font-family: inherit; font-size: 14px; text-align: center;">
+                                            <button type="button" class="day-btn plus" style="width: 36px; height: 36px; border: 2px solid var(--border); border-radius: var(--radius-md); background: white; cursor: pointer; display: flex; align-items: center; justify-content: center; font-weight: 600; transition: all 0.3s;">
+                                                <i class="fas fa-plus"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group" style="margin-bottom: 16px;">
+                                        <label style="display: block; margin-bottom: 8px; font-weight: 500; color: var(--text-primary); font-size: 14px;">Reason (Optional)</label>
+                                        <textarea id="extendReason" rows="2" placeholder="Why extend?" style="width: 100%; padding: 10px; border-radius: var(--radius-md); border: 2px solid var(--border); font-family: inherit; font-size: 13px; resize: vertical;"></textarea>
+                                    </div>
+
+                                    <button type="button" id="extendBtn" class="btn btn-primary" style="width: 100%; background: linear-gradient(135deg, var(--secondary), var(--secondary-light)); color: white; padding: 12px; border: none; border-radius: var(--radius-md); font-weight: 600; cursor: pointer; transition: all 0.3s; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 14px;">
+                                        <i class="fas fa-clock-rotate-left"></i> Extend Deadline
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Task List Column -->
+                    <div>
+                        <div style="background: var(--card-gradient); border-radius: var(--radius-lg); padding: 28px; box-shadow: var(--card-shadow); border: 1px solid rgba(255, 255, 255, 0.8); max-height: 800px; display: flex; flex-direction: column;">
+                            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px;">
+                                <div style="display: flex; align-items: center; gap: 12px;">
+                                    <div style="width: 40px; height: 40px; background: linear-gradient(135deg, var(--secondary), var(--secondary-light)); border-radius: var(--radius-md); display: flex; align-items: center; justify-content: center; color: white; font-size: 20px;">
+                                        <i class="fas fa-list-check"></i>
+                                    </div>
+                                    <h2 style="color: var(--text-primary); margin: 0;">Tasks</h2>
+                                </div>
+                                <button id="newTaskBtn" class="icon-btn" style="width: 36px; height: 36px; border: 2px solid var(--primary); border-radius: var(--radius-md); background: white; color: var(--primary); cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.3s;">
+                                    <i class="fas fa-plus"></i>
+                                </button>
+                            </div>
+
+                            <!-- Filter Buttons -->
+                            <div style="display: flex; gap: 8px; margin-bottom: 20px;">
+                                <button class="filter-btn active" data-filter="all" style="flex: 1; padding: 8px 12px; border: 2px solid var(--border); border-radius: var(--radius-md); background: linear-gradient(135deg, var(--primary), var(--primary-dark)); color: white; cursor: pointer; font-weight: 500; font-size: 13px; transition: all 0.3s;">
+                                    All
+                                </button>
+                                <button class="filter-btn" data-filter="active" style="flex: 1; padding: 8px 12px; border: 2px solid var(--border); border-radius: var(--radius-md); background: white; color: var(--text-primary); cursor: pointer; font-weight: 500; font-size: 13px; transition: all 0.3s;">
+                                    Active
+                                </button>
+                                <button class="filter-btn" data-filter="completed" style="flex: 1; padding: 8px 12px; border: 2px solid var(--border); border-radius: var(--radius-md); background: white; color: var(--text-primary); cursor: pointer; font-weight: 500; font-size: 13px; transition: all 0.3s;">
+                                    Done
+                                </button>
+                            </div>
+
+                            <!-- Task List -->
+                            <ul id="taskList" style="list-style: none; padding: 0; margin: 0; overflow-y: auto; flex: 1;">
+                                <!-- Tasks will be populated by JavaScript -->
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- Task Details Column -->
+                    <div>
+                        <div style="background: var(--card-gradient); border-radius: var(--radius-lg); padding: 28px; box-shadow: var(--card-shadow); border: 1px solid rgba(255, 255, 255, 0.8); max-height: 800px; display: flex; flex-direction: column;">
+                            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px;">
+                                <div style="display: flex; align-items: center; gap: 12px;">
+                                    <div style="width: 40px; height: 40px; background: linear-gradient(135deg, var(--accent), var(--accent-light)); border-radius: var(--radius-md); display: flex; align-items: center; justify-content: center; color: white; font-size: 20px;">
+                                        <i class="fas fa-info-circle"></i>
+                                    </div>
+                                    <h2 style="color: var(--text-primary); margin: 0;">Details</h2>
+                                </div>
+                                <button id="viewInsightsBtn" class="icon-btn" style="width: 36px; height: 36px; border: 2px solid var(--accent); border-radius: var(--radius-md); background: white; color: var(--accent); cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.3s;">
+                                    <i class="fas fa-chart-line"></i>
+                                </button>
+                            </div>
+
+                            <!-- Task Details Content -->
+                            <div id="taskDetailContent" style="overflow-y: auto; flex: 1;">
+                                <div class="empty-state" style="text-align: center; padding: 40px 20px; color: var(--text-muted);">
+                                    <div class="empty-icon" style="font-size: 48px; margin-bottom: 16px; opacity: 0.5;">
+                                        <i class="fas fa-mouse-pointer"></i>
+                                    </div>
+                                    <h3 style="color: var(--text-secondary); margin-bottom: 8px;">Select a Task</h3>
+                                    <p>Click on any task to view its details here</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Actions -->
+                <div class="calendar-container" style="margin-top: 32px;">
+                    <h2 style="margin-bottom: 24px; color: var(--text-primary);">Upcoming Deadlines</h2>
+                    <div style="display: grid; gap: 16px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 16px; background: white; border-radius: var(--radius-md); border: 1px solid var(--border);">
+                            <div>
+                                <h4 style="font-weight: 600; margin-bottom: 4px;">Project Proposal</h4>
+                                <p style="color: var(--text-secondary); font-size: 14px;">Due: Tomorrow, 10:00 AM</p>
+                            </div>
+                            <button class="btn btn-primary extend-task-btn" data-task="Project Proposal">
+                                <i class="fas fa-clock-rotate-left"></i> Extend
+                            </button>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 16px; background: white; border-radius: var(--radius-md); border: 1px solid var(--border);">
+                            <div>
+                                <h4 style="font-weight: 600; margin-bottom: 4px;">Design Review</h4>
+                                <p style="color: var(--text-secondary); font-size: 14px;">Due: In 3 days, 2:00 PM</p>
+                            </div>
+                            <button class="btn btn-primary extend-task-btn" data-task="Design Review">
+                                <i class="fas fa-clock-rotate-left"></i> Extend
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Calendar Page -->
+        <div class="page-content" id="calendar">
+            <div class="page-header">
+                <h1>Calendar</h1>
+                <p class="page-description">View all deadlines and important dates</p>
+            </div>
+
+            <div class="calendar-container">
+                <div class="calendar-header">
+                    <div class="calendar-nav">
+                        <button id="prevMonth">
+                            <i class="fas fa-chevron-left"></i>
+                        </button>
+                    </div>
+                    <div class="month-year" id="currentMonth">March 2024</div>
+                    <div class="calendar-nav">
+                        <button id="nextMonth">
+                            <i class="fas fa-chevron-right"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="calendar-grid" id="calendarGrid">
+                    <div class="calendar-day-header">Sun</div>
+                    <div class="calendar-day-header">Mon</div>
+                    <div class="calendar-day-header">Tue</div>
+                    <div class="calendar-day-header">Wed</div>
+                    <div class="calendar-day-header">Thu</div>
+                    <div class="calendar-day-header">Fri</div>
+                    <div class="calendar-day-header">Sat</div>
+
+                    <!-- Calendar days will be populated by JavaScript -->
+                </div>
+
+                <div style="margin-top: 24px; padding-top: 24px; border-top: 1px solid var(--border);">
+                    <h3 style="margin-bottom: 16px; color: var(--text-primary);">Legend</h3>
+                    <div style="display: flex; gap: 20px; flex-wrap: wrap;">
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <div style="width: 20px; height: 20px; border-radius: 4px; background: var(--danger);"></div>
+                            <span>Critical Deadline</span>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <div style="width: 20px; height: 20px; border-radius: 4px; background: var(--warning);"></div>
+                            <span>Has Tasks</span>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <div style="width: 20px; height: 20px; border-radius: 4px; border: 2px solid var(--primary);"></div>
+                            <span>Today</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Extend Deadline Page -->
+        <div class="page-content" id="extend">
+            <div class="page-header">
+                <h1>Extend Deadline</h1>
+                <p class="page-description">Request deadline extensions for your tasks</p>
+            </div>
+
+            <div class="extensions-container">
+                <div style="margin-bottom: 32px;">
+                    <h3 style="margin-bottom: 16px; color: var(--text-primary);">Request New Extension</h3>
+                    <div style="background: white; padding: 24px; border-radius: var(--radius-md); border: 1px solid var(--border);">
+                        <div style="display: grid; gap: 20px;">
+                            <div>
+                                <label style="display: block; margin-bottom: 8px; font-weight: 500; color: var(--text-primary);">Select Task</label>
+                                <select id="taskSelect" style="width: 100%; padding: 12px; border-radius: var(--radius-md); border: 2px solid var(--border); font-family: inherit; font-size: 14px;">
+                                    <option value="">Select a task...</option>
+                                    <option value="project-proposal">Project Proposal</option>
+                                    <option value="design-review">Design Review</option>
+                                    <option value="documentation-update">Documentation Update</option>
+                                    <option value="team-meeting">Team Meeting</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label style="display: block; margin-bottom: 8px; font-weight: 500; color: var(--text-primary);">Extension Length</label>
+                                <select id="extensionLength" style="width: 100%; padding: 12px; border-radius: var(--radius-md); border: 2px solid var(--border); font-family: inherit; font-size: 14px;">
+    <option value="">Select duration...</option>
+                                    <option value="1">1 Day</option>
+                                    <option value="3">3 Days</option>
+                                    <option value="7">1 Week</option>
+                                    <option value="14">2 Weeks</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label style="display: block; margin-bottom: 8px; font-weight: 500; color: var(--text-primary);">Reason (Optional)</label>
+                                <textarea id="extensionReason" rows="3" placeholder="Why do you need an extension?" style="width: 100%; padding: 12px; border-radius: var(--radius-md); border: 2px solid var(--border); font-family: inherit; font-size: 14px; resize: vertical;"></textarea>
+                            </div>
+                            <button class="btn btn-primary" id="submitExtensionBtn">
+                                <i class="fas fa-paper-plane"></i> Submit Request
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div>
+                    <h3 style="margin-bottom: 16px; color: var(--text-primary);">Extension History</h3>
+                    <div id="extensionHistory" style="display: grid; gap: 16px;">
+                        <div class="extension-card" style="background: white; padding: 20px; border-radius: var(--radius-md); border: 1px solid var(--border);">
+                            <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 12px;">
+                                <div>
+                                    <h4 style="font-weight: 600; margin-bottom: 4px; color: var(--text-primary);">Project Proposal</h4>
+                                    <p style="font-size: 14px; color: var(--text-secondary);">Extended by 3 days</p>
+                                </div>
+                                <span class="status-approved" style="padding: 6px 12px; border-radius: var(--radius-full); font-size: 12px; font-weight: 600; background: var(--success-light); color: var(--success);">
+                                    <i class="fas fa-check"></i> Approved
+                                </span>
+                            </div>
+                            <div style="font-size: 13px; color: var(--text-muted);">
+                                <i class="far fa-calendar"></i> Requested: 2 days ago
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Notifications Page -->
+        <div class="page-content" id="notifications">
+            <div class="page-header">
+                <h1>Notifications</h1>
+                <p class="page-description">Stay updated with deadline alerts and updates</p>
+            </div>
+
+            <div class="notifications-container">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+                    <h3 style="color: var(--text-primary); margin: 0;">Recent Notifications</h3>
+                    <button class="btn btn-secondary" id="markAllRead">
+                        <i class="fas fa-check-double"></i> Mark all as read
+                    </button>
+                </div>
+                <!-- Notifications will be populated by JavaScript -->
+            </div>
+        </div>
+
+        <!-- Settings Page -->
+        <div class="page-content" id="settings">
+            <div class="page-header">
+                <h1>Settings</h1>
+                <p class="page-description">Customize your deadline management experience</p>
+            </div>
+
+            <div class="settings-container">
+                <div class="settings-section">
+                    <h3>Preferences</h3>
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <h4>Email Notifications</h4>
+                            <p>Receive email reminders for upcoming deadlines</p>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" name="emailNotifications" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <h4>Desktop Notifications</h4>
+                            <p>Get browser notifications for deadline alerts</p>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" name="desktopNotifications" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <h4>Auto-save</h4>
+                            <p>Automatically save changes to tasks</p>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" name="autoSave" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="settings-section">
+                    <h3>Theme</h3>
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <h4>Theme Mode</h4>
+                            <p>Choose your preferred theme</p>
+                        </div>
+                        <select name="theme" id="themeSelect" onchange="window.changeTheme(this.value)" style="padding: 8px 16px; border-radius: var(--radius-md); border: 2px solid var(--border); font-family: inherit; background: var(--card); color: var(--text-primary);">
+                            <option value="light">Light</option>
+                            <option value="dark">Dark</option>
+                            <option value="auto">Auto</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div style="margin-top: 32px; padding-top: 24px; border-top: 1px solid var(--border); text-align: center;">
+                    <button class="btn btn-primary">
+                        <i class="fas fa-save"></i> Save Settings
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Logout Page -->
+        <div class="page-content" id="logout">
+            <div class="logout-container">
+                <div class="logout-icon">
+                    <i class="fas fa-sign-out-alt"></i>
+                </div>
+                <h2>Logout</h2>
+                <p>Are you sure you want to logout?</p>
+                <div class="logout-actions">
+                    <button class="btn btn-secondary" id="cancelLogout">
+                        <i class="fas fa-times"></i> Cancel
+                    </button>
+                    <button class="btn btn-primary" id="confirmLogout">
+                        <i class="fas fa-sign-out-alt"></i> Yes, Logout
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Authentication Wrapper (Login/Signup) -->
+    <div id="authWrapper" style="display: flex; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); z-index: 9999; overflow-y: auto;">
+        <style>
+            #authWrapper {
+                font-family: 'Inter', sans-serif;
+            }
+
+            .auth-container {
+                min-height: 100vh;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                padding: 40px 20px;
+            }
+
+            .auth-card {
+                background: var(--card);
+                border-radius: 24px;
+                padding: 48px;
+                max-width: 480px;
+                width: 100%;
+                box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+                animation: slideUp 0.5s ease;
+            }
+
+            @keyframes slideUp {
+                from {
+                    opacity: 0;
+                    transform: translateY(30px);
+                }
+                to {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+            }
+
+            .auth-header {
+                text-align: center;
+                margin-bottom: 32px;
+            }
+
+            .auth-logo {
+                width: 64px;
+                height: 64px;
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                border-radius: 16px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                color: white;
+                font-size: 32px;
+                margin: 0 auto 16px;
+            }
+
+            .auth-header h2 {
+                font-size: 28px;
+                font-weight: 700;
+                margin-bottom: 8px;
+                color: var(--text-primary);
+            }
+
+            .auth-header p {
+                color: var(--text-secondary);
+            }
+
+            .form-group {
+                margin-bottom: 20px;
+            }
+
+            .form-group label {
+                display: block;
+                margin-bottom: 8px;
+                font-weight: 500;
+                color: var(--text-primary);
+            }
+
+            .input-wrapper {
+                position: relative;
+            }
+
+            .input-wrapper input {
+                width: 100%;
+                padding: 14px 16px;
+                border: 2px solid var(--border);
+                border-radius: 12px;
+                font-size: 15px;
+                transition: all 0.3s;
+                font-family: inherit;
+                background: var(--card);
+                color: var(--text-primary);
+            }
+
+            .input-wrapper input:focus {
+                outline: none;
+                border-color: #667eea;
+                box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+            }
+
+            .input-icon {
+                position: absolute;
+                right: 16px;
+                top: 50%;
+                transform: translateY(-50%);
+                color: var(--text-muted);
+            }
+
+            .toggle-password {
+                cursor: pointer;
+                transition: color 0.3s;
+            }
+
+            .toggle-password:hover {
+                color: #667eea;
+            }
+
+            .auth-btn {
+                width: 100%;
+                padding: 14px;
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                color: white;
+                border: none;
+                border-radius: 12px;
+                font-size: 16px;
+                font-weight: 600;
+                cursor: pointer;
+                transition: transform 0.3s, box-shadow 0.3s;
+            }
+
+            .auth-btn:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+            }
+
+            .auth-btn:disabled {
+                opacity: 0.7;
+                cursor: not-allowed;
+            }
+
+            .divider {
+                text-align: center;
+                margin: 24px 0;
+                position: relative;
+            }
+
+            .divider::before {
+                content: '';
+                position: absolute;
+                left: 0;
+                top: 50%;
+                width: 100%;
+                height: 1px;
+                background: var(--border);
+            }
+
+            .divider span {
+                background: var(--card);
+                padding: 0 16px;
+                color: var(--text-muted);
+                position: relative;
+                z-index: 1;
+            }
+
+            .social-login {
+                display: grid;
+                gap: 12px;
+            }
+
+            .social-btn {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 12px;
+                padding: 12px;
+                border: 2px solid var(--border);
+                border-radius: 12px;
+                background: var(--card);
+                color: var(--text-primary);
+                cursor: pointer;
+                transition: all 0.3s;
+                font-weight: 500;
+            }
+
+            .social-btn:hover {
+                border-color: #667eea;
+                background: #f8f9ff;
+            }
+
+            .auth-footer {
+                text-align: center;
+                margin-top: 24px;
+                color: var(--text-secondary);
+            }
+
+            .auth-footer a {
+                color: #667eea;
+                text-decoration: none;
+                font-weight: 600;
+            }
+
+            .auth-footer a:hover {
+                text-decoration: underline;
+            }
+
+            .checkbox-wrapper {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                margin-bottom: 20px;
+            }
+
+            .checkbox-wrapper input[type="checkbox"] {
+                width: 18px;
+                height: 18px;
+                cursor: pointer;
+            }
+
+            .forgot-password {
+                text-align: right;
+                margin-top: -12px;
+                margin-bottom: 20px;
+            }
+
+            .forgot-password a {
+                color: #667eea;
+                text-decoration: none;
+                font-size: 14px;
+            }
+
+            .message {
+                padding: 12px;
+                border-radius: 12px;
+                margin-bottom: 20px;
+                display: none;
+            }
+
+            .message.show {
+                display: block;
+            }
+
+            .message.success {
+                background: #d1fae5;
+                color: #065f46;
+                border: 1px solid #10b981;
+            }
+
+            .message.error {
+                background: #fee2e2;
+                color: #991b1b;
+                border: 1px solid #ef4444;
+            }
+
+            .message i {
+                margin-right: 8px;
+            }
+        </style>
+
+        <div class="auth-container">
+            <!-- Sign In Card -->
+            <div class="auth-card" id="signInCard">
+                <div class="auth-header">
+                    <div class="auth-logo">
+                        <i class="fas fa-calendar-check"></i>
+                    </div>
+                    <h2>Welcome Back!</h2>
+                    <p>Sign in to continue to Deadline Manager</p>
+                </div>
+
+                <div class="message success" id="successMessage">
+                    <i class="fas fa-check-circle"></i>
+                    <span>Success!</span>
+                </div>
+
+                <div class="message error" id="errorMessage">
+                    <i class="fas fa-exclamation-circle"></i>
+                    <span>Error message</span>
+                </div>
+
+                <form id="signInForm">
+                    <div class="form-group">
+                        <label>Email Address</label>
+                        <div class="input-wrapper">
+                            <input type="email" id="signInEmail" placeholder="you@example.com" required>
+                            <div class="input-icon">
+                                <i class="fas fa-envelope"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Password</label>
+                        <div class="input-wrapper">
+                            <input type="password" id="signInPassword" placeholder="Enter your password" required>
+                            <div class="input-icon toggle-password" id="toggleSignInPassword">
+                                <i class="fas fa-eye"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="checkbox-wrapper">
+                        <input type="checkbox" id="rememberMe">
+                        <label for="rememberMe" style="margin-bottom: 0;">Remember me</label>
+                    </div>
+
+                    <div class="forgot-password">
+                        <a href="#" class="forgot-password">Forgot password?</a>
+                    </div>
+
+                    <button type="submit" class="auth-btn" id="signInBtn">
+                        Sign In
+                    </button>
+                </form>
+
+                <div class="divider">
+                    <span>or continue with</span>
+                </div>
+
+                <div class="social-login">
+                    <button class="social-btn google">
+                        <i class="fab fa-google"></i>
+                        Google
+                    </button>
+                    <button class="social-btn github">
+                        <i class="fab fa-github"></i>
+                        GitHub
+                    </button>
+                </div>
+
+                <div class="auth-footer">
+                    Don't have an account? <a href="#" id="switchToSignUp">Sign up</a>
+                </div>
+            </div>
+
+            <!-- Sign Up Card -->
+            <div class="auth-card" id="signUpCard" style="display: none;">
+                <div class="auth-header">
+                    <div class="auth-logo">
+                        <i class="fas fa-calendar-check"></i>
+                    </div>
+                    <h2>Create Account</h2>
+                    <p>Join Deadline Manager today</p>
+                </div>
+
+                <div class="message success" id="signUpSuccessMessage">
+                    <i class="fas fa-check-circle"></i>
+                    <span>Success!</span>
+                </div>
+
+                <div class="message error" id="signUpErrorMessage">
+                    <i class="fas fa-exclamation-circle"></i>
+                    <span id="signUpErrorText">Error message</span>
+                </div>
+
+                <form id="signUpForm">
+                    <div class="form-group">
+                        <label>Full Name</label>
+                        <div class="input-wrapper">
+                            <input type="text" id="signUpName" placeholder="John Doe" required>
+                            <div class="input-icon">
+                                <i class="fas fa-user"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Email Address</label>
+                        <div class="input-wrapper">
+                            <input type="email" id="signUpEmail" placeholder="you@example.com" required>
+                            <div class="input-icon">
+                                <i class="fas fa-envelope"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Password</label>
+                        <div class="input-wrapper">
+                            <input type="password" id="signUpPassword" placeholder="Create a strong password" required>
+                            <div class="input-icon toggle-password" id="toggleSignUpPassword">
+                                <i class="fas fa-eye"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Confirm Password</label>
+                        <div class="input-wrapper">
+                            <input type="password" id="confirmPassword" placeholder="Confirm your password" required>
+                            <div class="input-icon toggle-password" id="toggleConfirmPassword">
+                                <i class="fas fa-eye"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="checkbox-wrapper">
+                        <input type="checkbox" id="agreeTerms" required>
+                        <label for="agreeTerms" style="margin-bottom: 0; font-size: 14px;">
+                            I agree to the Terms and Conditions
+                        </label>
+                    </div>
+
+                    <button type="submit" class="auth-btn" id="signUpBtn">
+                        Create Account
+                    </button>
+                </form>
+
+                <div class="divider">
+                    <span>or continue with</span>
+                </div>
+
+                <div class="social-login">
+                    <button class="social-btn google">
+                        <i class="fab fa-google"></i>
+                        Google
+                    </button>
+                    <button class="social-btn github">
+                        <i class="fab fa-github"></i>
+                        GitHub
+                    </button>
+                </div>
+
+                <div class="auth-footer">
+                    Already have an account? <a href="#" id="switchToSignIn">Sign in</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Task Modal -->
+    <div id="taskModal" class="modal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.5); z-index: 10000; align-items: center; justify-content: center;">
+        <div style="background: var(--card); border-radius: var(--radius-lg); padding: 32px; max-width: 600px; width: 90%; max-height: 90vh; overflow-y: auto;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+                <h2 style="margin: 0; color: var(--text-primary);">Task Details</h2>
+                <button id="modalClose" style="background: none; border: none; font-size: 24px; cursor: pointer; color: var(--text-muted);">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div id="taskDetailContent"></div>
+        </div>
+    </div>
+
+    <!-- Confetti Animation Styles -->
+    <style>
+        .confetti {
+            position: fixed;
+            top: -10px;
+            z-index: 10000;
+            pointer-events: none;
+            border-radius: 50%;
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: white;
+            border-radius: var(--radius-md);
+            padding: 16px 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            z-index: 10001;
+            min-width: 300px;
+            max-width: 400px;
+            opacity: 0;
+            transform: translateX(100px);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .notification.show {
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        .notification-content {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .notification-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+        }
+
+        .notification-success .notification-icon {
+            background: var(--success-light);
+            color: var(--success);
+        }
+
+        .notification-warning .notification-icon {
+            background: var(--warning-light);
+            color: var(--warning);
+        }
+
+        .notification-info .notification-icon {
+            background: var(--info-light);
+            color: var(--info);
+        }
+
+        .notification-message {
+            flex: 1;
+            color: var(--text-primary);
+            font-weight: 500;
+        }
+
+        /* Date Tasks Popup - Cute Modal */
+        .date-tasks-popup {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(4px);
+            z-index: 10002;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            padding: 20px;
+        }
+
+        .date-tasks-popup.show {
+            opacity: 1;
+        }
+
+        .date-tasks-popup .popup-content {
+            background: var(--card);
+            border-radius: 24px;
+            padding: 0;
+            max-width: 480px;
+            width: 100%;
+            max-height: 80vh;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+            transform: scale(0.9);
+            transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .date-tasks-popup.show .popup-content {
+            transform: scale(1);
+        }
+
+        .popup-header {
+            padding: 24px 28px;
+            border-bottom: 2px solid var(--border-light);
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            background: var(--bg);
+        }
+
+        .popup-close {
+            background: none;
+            border: none;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-muted);
+            transition: all 0.3s;
+            font-size: 18px;
+        }
+
+        .popup-close:hover {
+            background: var(--danger-light);
+            color: var(--danger);
+            transform: rotate(90deg);
+        }
+
+        .popup-tasks {
+            padding: 20px 28px;
+            overflow-y: auto;
+            flex: 1;
+            max-height: 400px;
+        }
+
+        .popup-task-item {
+            background: var(--bg);
+            border-radius: 16px;
+            padding: 16px;
+            margin-bottom: 12px;
+            border: 2px solid var(--border-light);
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .popup-task-item:hover {
+            transform: translateX(4px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            border-color: var(--primary-light);
+        }
+
+        .popup-task-item.completed {
+            opacity: 0.7;
+            background: var(--success-light);
+        }
+
+        .popup-task-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .popup-task-btn {
+            background: var(--primary-light);
+            border: none;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            transition: all 0.3s;
+            flex-shrink: 0;
+        }
+
+        .popup-task-btn:hover {
+            background: var(--primary);
+            transform: translateX(4px);
+        }
+
+        .no-tasks {
+            text-align: center;
+            padding: 40px 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .popup-footer {
+            padding: 16px 28px 24px;
+            border-top: 2px solid var(--border-light);
+            background: var(--bg);
+        }
+
+        .btn-popup-action {
+            width: 100%;
+            padding: 14px 20px;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            font-size: 15px;
+        }
+
+        .btn-popup-action:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(99, 102, 241, 0.4);
+        }
+
+        @media (max-width: 768px) {
+            .date-tasks-popup .popup-content {
+                max-width: 100%;
+                margin: 20px;
+            }
+        }
+    </style>
+
+    <!-- Load Scripts in correct order with defer to prevent reload loops -->
+    <script defer src="scripts/auth.js"></script>
+    <script defer src="scripts/sidebar.js"></script>
+    <script defer src="scripts/dashboard.js"></script>
+</html>
