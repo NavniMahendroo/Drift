@@ -903,6 +903,13 @@
             font-weight: 600;
         }
 
+        .calendar-day.extended-task {
+            background: linear-gradient(135deg, var(--info-light), var(--secondary));
+            color: white;
+            font-weight: 600;
+            border-color: rgba(59, 130, 246, 0.25);
+        }
+
         /* Extensions Page */
         .extensions-container {
             background: var(--card-gradient);
@@ -1518,40 +1525,6 @@
                                     <i class="fas fa-plus-circle"></i> Create Task
                                 </button>
                             </form>
-
-                            <div style="margin-top: 24px; padding-top: 24px; border-top: 1px solid var(--border);">
-                                <h3 style="margin-bottom: 16px; color: var(--text-primary); font-size: 16px;">Extend Deadline</h3>
-                                <div class="extend-deadline-container">
-                                    <div class="form-group" style="margin-bottom: 16px;">
-                                        <label style="display: block; margin-bottom: 8px; font-weight: 500; color: var(--text-primary); font-size: 14px;">Select Task</label>
-                                        <select id="extendTask" style="width: 100%; padding: 10px; border-radius: var(--radius-md); border: 2px solid var(--border); font-family: inherit; font-size: 13px;">
-                                            <option value="">Select a task...</option>
-                                        </select>
-                                    </div>
-
-                                    <div class="form-group" style="margin-bottom: 16px;">
-                                        <label style="display: block; margin-bottom: 8px; font-weight: 500; color: var(--text-primary); font-size: 14px;">Days to Extend</label>
-                                        <div style="display: flex; align-items: center; gap: 8px;">
-                                            <button type="button" class="day-btn minus" style="width: 36px; height: 36px; border: 2px solid var(--border); border-radius: var(--radius-md); background: white; cursor: pointer; display: flex; align-items: center; justify-content: center; font-weight: 600; transition: all 0.3s;">
-                                                <i class="fas fa-minus"></i>
-                                            </button>
-                                            <input type="number" id="extendDays" value="7" min="1" max="30" style="flex: 1; padding: 10px; border-radius: var(--radius-md); border: 2px solid var(--border); font-family: inherit; font-size: 14px; text-align: center;">
-                                            <button type="button" class="day-btn plus" style="width: 36px; height: 36px; border: 2px solid var(--border); border-radius: var(--radius-md); background: white; cursor: pointer; display: flex; align-items: center; justify-content: center; font-weight: 600; transition: all 0.3s;">
-                                                <i class="fas fa-plus"></i>
-                                            </button>
-                                        </div>
-                                    </div>
-
-                                    <div class="form-group" style="margin-bottom: 16px;">
-                                        <label style="display: block; margin-bottom: 8px; font-weight: 500; color: var(--text-primary); font-size: 14px;">Reason (Optional)</label>
-                                        <textarea id="extendReason" rows="2" placeholder="Why extend?" style="width: 100%; padding: 10px; border-radius: var(--radius-md); border: 2px solid var(--border); font-family: inherit; font-size: 13px; resize: vertical;"></textarea>
-                                    </div>
-
-                                    <button type="button" id="extendBtn" class="btn btn-primary" style="width: 100%; background: linear-gradient(135deg, var(--secondary), var(--secondary-light)); color: white; padding: 12px; border: none; border-radius: var(--radius-md); font-weight: 600; cursor: pointer; transition: all 0.3s; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 14px;">
-                                        <i class="fas fa-clock-rotate-left"></i> Extend Deadline
-                                    </button>
-                                </div>
-                            </div>
                         </div>
                     </div>
 
@@ -1716,10 +1689,6 @@
                                 <label style="display: block; margin-bottom: 8px; font-weight: 500; color: var(--text-primary);">Select Task</label>
                                 <select id="taskSelect" style="width: 100%; padding: 12px; border-radius: var(--radius-md); border: 2px solid var(--border); font-family: inherit; font-size: 14px;">
                                     <option value="">Select a task...</option>
-                                    <option value="project-proposal">Project Proposal</option>
-                                    <option value="design-review">Design Review</option>
-                                    <option value="documentation-update">Documentation Update</option>
-                                    <option value="team-meeting">Team Meeting</option>
                                 </select>
                             </div>
                             <div>
@@ -1737,7 +1706,7 @@
                                 <textarea id="extensionReason" rows="3" placeholder="Why do you need an extension?" style="width: 100%; padding: 12px; border-radius: var(--radius-md); border: 2px solid var(--border); font-family: inherit; font-size: 14px; resize: vertical;"></textarea>
                             </div>
                             <button class="btn btn-primary" id="submitExtensionBtn">
-                                <i class="fas fa-paper-plane"></i> Submit Request
+                                <i class="fas fa-clock-rotate-left"></i> Extend
                             </button>
                         </div>
                     </div>
@@ -1745,22 +1714,7 @@
 
                 <div>
                     <h3 style="margin-bottom: 16px; color: var(--text-primary);">Extension History</h3>
-                    <div id="extensionHistory" style="display: grid; gap: 16px;">
-                        <div class="extension-card" style="background: white; padding: 20px; border-radius: var(--radius-md); border: 1px solid var(--border);">
-                            <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 12px;">
-                                <div>
-                                    <h4 style="font-weight: 600; margin-bottom: 4px; color: var(--text-primary);">Project Proposal</h4>
-                                    <p style="font-size: 14px; color: var(--text-secondary);">Extended by 3 days</p>
-                                </div>
-                                <span class="status-approved" style="padding: 6px 12px; border-radius: var(--radius-full); font-size: 12px; font-weight: 600; background: var(--success-light); color: var(--success);">
-                                    <i class="fas fa-check"></i> Approved
-                                </span>
-                            </div>
-                            <div style="font-size: 13px; color: var(--text-muted);">
-                                <i class="far fa-calendar"></i> Requested: 2 days ago
-                            </div>
-                        </div>
-                    </div>
+                    <div id="extensionHistory" style="display: grid; gap: 16px;"></div>
                 </div>
             </div>
         </div>

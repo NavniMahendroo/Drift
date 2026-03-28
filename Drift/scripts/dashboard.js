@@ -12,8 +12,7 @@ class DashboardApp {
         this.taskForm = null;
         this.taskList = null;
         this.taskDetailContent = null;
-        this.extendTaskSelect = null;
-        this.extendBtn = null;
+        this.extendPageTaskSelect = null;
         this.filterButtons = null;
         this.modal = null;
         this.modalClose = null;
@@ -21,9 +20,6 @@ class DashboardApp {
         this.editTaskBtn = null;
         this.newTaskBtn = null;
         this.viewInsightsBtn = null;
-        this.extendDaysInput = null;
-        this.extendDaysMinus = null;
-        this.extendDaysPlus = null;
         this.completedCount = null;
         this.pendingCount = null;
         this.overdueCount = null;
@@ -42,6 +38,7 @@ class DashboardApp {
         this.setDefaultDates();
         this.renderTaskList();
         this.updateExtendTaskSelect();
+        this.renderExtensionHistory();
         this.updateStats();
         this.updateUserInfo();
         
@@ -91,8 +88,7 @@ class DashboardApp {
         this.taskForm = document.getElementById('taskForm');
         this.taskList = document.getElementById('taskList');
         this.taskDetailContent = document.getElementById('taskDetailContent');
-        this.extendTaskSelect = document.getElementById('extendTask');
-        this.extendBtn = document.getElementById('extendBtn');
+        this.extendPageTaskSelect = document.getElementById('taskSelect');
         this.filterButtons = document.querySelectorAll('.filter-btn');
         this.modal = document.getElementById('taskModal');
         this.modalClose = document.getElementById('modalClose');
@@ -100,9 +96,6 @@ class DashboardApp {
         this.editTaskBtn = document.getElementById('editTaskBtn');
         this.newTaskBtn = document.getElementById('newTaskBtn');
         this.viewInsightsBtn = document.getElementById('viewInsightsBtn');
-        this.extendDaysInput = document.getElementById('extendDays');
-        this.extendDaysMinus = document.querySelector('.day-btn.minus');
-        this.extendDaysPlus = document.querySelector('.day-btn.plus');
         this.completedCount = document.getElementById('completedCount');
         this.pendingCount = document.getElementById('pendingCount');
         this.overdueCount = document.getElementById('overdueCount');
@@ -115,28 +108,6 @@ class DashboardApp {
             this.taskForm.addEventListener('submit', (e) => {
                 e.preventDefault();
                 this.createNewTask();
-            });
-        }
-
-        // Extend deadline button
-        if (this.extendBtn) {
-            this.extendBtn.addEventListener('click', () => this.extendDeadline());
-        }
-        
-        // Extend days buttons
-        if (this.extendDaysMinus && this.extendDaysPlus) {
-            this.extendDaysMinus.addEventListener('click', () => {
-                const current = parseInt(this.extendDaysInput.value) || 7;
-                if (current > 1) {
-                    this.extendDaysInput.value = current - 1;
-                }
-            });
-            
-            this.extendDaysPlus.addEventListener('click', () => {
-                const current = parseInt(this.extendDaysInput.value) || 7;
-                if (current < 30) {
-                    this.extendDaysInput.value = current + 1;
-                }
             });
         }
 
@@ -204,41 +175,23 @@ class DashboardApp {
         document.querySelectorAll('.extend-task-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 const taskName = e.target.closest('.extend-task-btn').dataset.task;
-                this.showNotification(`Extension feature for "${taskName}" - please use the Extend Deadline section on the left`, 'info');
-                
-                // Scroll to extend section
-                const extendSection = document.querySelector('.extend-deadline-container');
-                if (extendSection) {
-                    extendSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                    
-                    // Highlight the section briefly
-                    extendSection.style.background = 'rgba(99, 102, 241, 0.1)';
-                    setTimeout(() => {
-                        extendSection.style.background = '';
-                    }, 2000);
+                const matchedTask = this.tasks.find(task => task.name.toLowerCase() === String(taskName).toLowerCase());
+
+                if (matchedTask) {
+                    this.openExtendPageForTask(matchedTask.id);
+                    this.showNotification(`Opened Extend Deadline for "${matchedTask.name}"`, 'info');
+                    return;
                 }
+
+                this.openExtendPageForTask();
+                this.showNotification('Opened Extend Deadline section', 'info');
             });
         });
 
         // Extension request submission (on extend page)
         const submitExtensionBtn = document.getElementById('submitExtensionBtn');
         if (submitExtensionBtn) {
-            submitExtensionBtn.addEventListener('click', () => {
-                const taskSelect = document.getElementById('taskSelect');
-                const extensionLength = document.getElementById('extensionLength');
-                const extensionReason = document.getElementById('extensionReason');
-                
-                if (taskSelect && taskSelect.value && extensionLength && extensionLength.value) {
-                    this.showNotification(`Extension request submitted for ${extensionLength.value} day(s)!`, 'success');
-                    
-                    // Reset form
-                    taskSelect.value = '';
-                    extensionLength.value = '';
-                    if (extensionReason) extensionReason.value = '';
-                } else {
-                    this.showNotification('Please select a task and extension length', 'warning');
-                }
-            });
+            submitExtensionBtn.addEventListener('click', () => this.submitExtensionRequest());
         }
 
         // Close modal when clicking outside
@@ -281,8 +234,8 @@ class DashboardApp {
         if (dueDateInput) {
             const nextWeek = new Date();
             nextWeek.setDate(nextWeek.getDate() + 7);
-            dueDateInput.value = nextWeek.toISOString().split('T')[0];
-            dueDateInput.min = new Date().toISOString().split('T')[0];
+            dueDateInput.value = this.getDateKey(nextWeek);
+            dueDateInput.min = this.getDateKey(new Date());
         }
     }
 
@@ -323,7 +276,7 @@ class DashboardApp {
             category: category,
             link: taskLink,
             completed: false,
-            created: new Date().toISOString().split('T')[0],
+            created: this.getDateKey(new Date()),
             extensions: []
         };
 
@@ -655,98 +608,169 @@ class DashboardApp {
 
     // Update the extend task dropdown
     updateExtendTaskSelect() {
-        if (!this.extendTaskSelect) return;
-        
-        this.extendTaskSelect.innerHTML = '<option value="">Select a task...</option>';
-        
         const activeTasks = this.tasks.filter(task => !task.completed);
+
+        if (this.extendPageTaskSelect) {
+            this.extendPageTaskSelect.innerHTML = '<option value="">Select a task...</option>';
+        }
         
         activeTasks.forEach(task => {
-            const option = document.createElement('option');
-            option.value = task.id;
-            option.textContent = `${task.name} (Due: ${this.formatDate(task.dueDate)})`;
-            this.extendTaskSelect.appendChild(option);
+            const optionLabel = `${task.name} (Due: ${this.formatDate(task.dueDate)})`;
+
+            if (this.extendPageTaskSelect) {
+                const pageOption = document.createElement('option');
+                pageOption.value = task.id;
+                pageOption.textContent = optionLabel;
+                this.extendPageTaskSelect.appendChild(pageOption);
+            }
         });
     }
 
-    // Extend a task's deadline
-    extendDeadline() {
-        const taskId = parseInt(this.extendTaskSelect.value);
-        const daysToAdd = parseInt(document.getElementById('extendDays').value);
-        const reason = document.getElementById('extendReason').value;
-        
+    // Submit extension from the Extend Deadline page and apply it to the task
+    submitExtensionRequest() {
+        const extensionLength = document.getElementById('extensionLength');
+        const extensionReason = document.getElementById('extensionReason');
+
+        const taskId = parseInt(this.extendPageTaskSelect ? this.extendPageTaskSelect.value : '', 10);
+        const daysToAdd = parseInt(extensionLength ? extensionLength.value : '', 10);
+        const reason = extensionReason ? extensionReason.value.trim() : '';
+
         if (!taskId || !daysToAdd) {
-            this.showNotification('Please select a task and enter days to add', 'warning');
+            this.showNotification('Please select a task and extension length', 'warning');
             return;
         }
-        
+
         const task = this.tasks.find(t => t.id === taskId);
-        if (!task) return;
-        
-        // Calculate new due date
-        const currentDueDate = new Date(task.dueDate);
+        if (!task) {
+            this.showNotification('Selected task no longer exists', 'warning');
+            return;
+        }
+
+        const currentDueDate = this.parseDateKey(task.dueDate);
         currentDueDate.setDate(currentDueDate.getDate() + daysToAdd);
-        
-        // Update task
-        task.dueDate = currentDueDate.toISOString().split('T')[0];
+
+        task.dueDate = this.getDateKey(currentDueDate);
         task.extensions.push({
             days: daysToAdd,
             reason: reason,
-            date: new Date().toISOString().split('T')[0]
+            date: this.getDateKey(new Date())
         });
-        
-        // Save changes
+
         this.saveUserTasks();
-        
-        // Update UI
         this.renderTaskList();
         this.updateExtendTaskSelect();
         this.updateStats();
+        this.renderExtensionHistory();
         
-        // Clear extend form
-        document.getElementById('extendReason').value = '';
-        
-        // Show success animation
-        if (this.extendBtn) {
-            const originalHTML = this.extendBtn.innerHTML;
-            this.extendBtn.innerHTML = '<i class="fas fa-check"></i> Extended!';
-            this.extendBtn.style.background = 'linear-gradient(135deg, var(--success), var(--success-light))';
-            
-            setTimeout(() => {
-                this.extendBtn.innerHTML = originalHTML;
-                this.extendBtn.style.background = '';
-            }, 1500);
+        // Update calendar to reflect new deadline
+        if (window.sidebarController) {
+            window.sidebarController.renderCalendar();
         }
-        
-        // Show success message
-        this.showNotification(`✨ Deadline extended by ${daysToAdd} days!`, 'success');
-        
-        // Update task details if this task is selected
+
         if (this.selectedTaskId === taskId) {
             this.renderTaskDetails(taskId);
         }
+
+        if (this.extendPageTaskSelect) this.extendPageTaskSelect.value = '';
+        if (extensionLength) extensionLength.value = '';
+        if (extensionReason) extensionReason.value = '';
+
+        const submitExtensionBtn = document.getElementById('submitExtensionBtn');
+        if (submitExtensionBtn) {
+            const originalHTML = submitExtensionBtn.innerHTML;
+            submitExtensionBtn.innerHTML = '<i class="fas fa-check"></i> Request Submitted';
+            submitExtensionBtn.style.background = 'linear-gradient(135deg, var(--success), var(--success-light))';
+
+            setTimeout(() => {
+                submitExtensionBtn.innerHTML = originalHTML;
+                submitExtensionBtn.style.background = '';
+            }, 1200);
+        }
+
+        this.showNotification(`✨ Deadline for "${task.name}" extended by ${daysToAdd} day(s)!`, 'success');
+    }
+
+    // Render extension history cards from real task extension data
+    renderExtensionHistory() {
+        const extensionHistory = document.getElementById('extensionHistory');
+        if (!extensionHistory) return;
+
+        const extensionEntries = this.tasks
+            .flatMap(task => (task.extensions || []).map(ext => ({
+                taskName: task.name,
+                days: ext.days,
+                reason: ext.reason || '',
+                date: ext.date
+            })))
+            .sort((a, b) => new Date(b.date) - new Date(a.date));
+
+        if (extensionEntries.length === 0) {
+            extensionHistory.innerHTML = `
+                <div class="extension-card" style="background: white; padding: 20px; border-radius: var(--radius-md); border: 1px solid var(--border);">
+                    <p style="color: var(--text-secondary); margin: 0;">No extension requests yet.</p>
+                </div>
+            `;
+            return;
+        }
+
+        extensionHistory.innerHTML = extensionEntries.map(entry => `
+            <div class="extension-card" style="background: white; padding: 20px; border-radius: var(--radius-md); border: 1px solid var(--border);">
+                <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 12px; gap: 12px;">
+                    <div>
+                        <h4 style="font-weight: 600; margin-bottom: 4px; color: var(--text-primary);">${this.escapeHtml(entry.taskName)}</h4>
+                        <p style="font-size: 14px; color: var(--text-secondary); margin: 0;">Extended by ${entry.days} day(s)</p>
+                        ${entry.reason ? `<p style="font-size: 13px; color: var(--text-muted); margin: 6px 0 0;">Reason: ${this.escapeHtml(entry.reason)}</p>` : ''}
+                    </div>
+                    <span class="status-approved" style="padding: 6px 12px; border-radius: var(--radius-full); font-size: 12px; font-weight: 600; background: var(--success-light); color: var(--success); white-space: nowrap;">
+                        <i class="fas fa-check"></i> Applied
+                    </span>
+                </div>
+                <div style="font-size: 13px; color: var(--text-muted);">
+                    <i class="far fa-calendar"></i> Date: ${this.formatDate(entry.date)}
+                </div>
+            </div>
+        `).join('');
     }
 
     // Show extend modal for specific task
     showExtendModal(taskId) {
-        const task = this.tasks.find(t => t.id === taskId);
-        if (!task) return;
-        
-        // Populate extend form with this task
-        if (this.extendTaskSelect) {
-            this.extendTaskSelect.value = taskId;
+        this.openExtendPageForTask(taskId);
+    }
+
+    // Open Extend page and optionally preselect a task
+    openExtendPageForTask(taskId = null) {
+        const extendNavItem = document.querySelector('.nav-item[data-page="extend"]');
+        if (extendNavItem) {
+            extendNavItem.click();
+        } else {
+            window.location.hash = 'extend';
         }
-        
-        // Focus on extend days input
-        if (this.extendDaysInput) {
-            this.extendDaysInput.focus();
-        }
-        
-        // Scroll to extend form
-        const extendSection = document.querySelector('.extend-deadline-container');
-        if (extendSection) {
-            extendSection.scrollIntoView({ behavior: 'smooth' });
-        }
+
+        setTimeout(() => {
+            if (taskId && this.extendPageTaskSelect) {
+                this.extendPageTaskSelect.value = String(taskId);
+            }
+
+            const extensionLength = document.getElementById('extensionLength');
+            if (extensionLength) {
+                extensionLength.focus();
+            }
+
+            const extendSection = document.querySelector('#extend .extensions-container');
+            if (extendSection) {
+                extendSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+        }, 120);
+    }
+
+    // Escape text for safe HTML rendering
+    escapeHtml(value) {
+        return String(value)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;');
     }
 
     // Toggle task completion status
@@ -761,6 +785,7 @@ class DashboardApp {
         this.renderTaskList();
         this.updateExtendTaskSelect();
         this.updateStats();
+        this.renderExtensionHistory();
         
         // Update task details
         if (this.selectedTaskId === taskId) {
@@ -795,6 +820,7 @@ class DashboardApp {
         this.renderTaskList();
         this.updateExtendTaskSelect();
         this.updateStats();
+        this.renderExtensionHistory();
         
         // Clear task details if deleted task was selected
         if (this.selectedTaskId === taskId) {
@@ -822,6 +848,7 @@ class DashboardApp {
             // Update UI
             this.renderTaskList();
             this.updateExtendTaskSelect();
+            this.renderExtensionHistory();
             
             // Update task details
             if (this.selectedTaskId === taskId) {
@@ -894,7 +921,7 @@ class DashboardApp {
         const today = new Date();
         today.setHours(0, 0, 0, 0);
         
-        const due = new Date(dueDate);
+        const due = this.parseDateKey(dueDate);
         due.setHours(0, 0, 0, 0);
         
         const diffTime = due.getTime() - today.getTime();
@@ -905,11 +932,11 @@ class DashboardApp {
 
     // Format date to readable string
     formatDate(dateString) {
-        const date = new Date(dateString);
+        const date = this.parseDateKey(dateString);
         const today = new Date();
         today.setHours(0, 0, 0, 0);
         
-        const target = new Date(dateString);
+        const target = this.parseDateKey(dateString);
         target.setHours(0, 0, 0, 0);
         
         const diffTime = target.getTime() - today.getTime();
@@ -1097,7 +1124,24 @@ class DashboardApp {
     getDateString(offsetDays) {
         const date = new Date();
         date.setDate(date.getDate() + offsetDays);
-        return date.toISOString().split('T')[0];
+        return this.getDateKey(date);
+    }
+
+    // Format a Date object as YYYY-MM-DD in local time
+    getDateKey(date) {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    }
+
+    // Parse YYYY-MM-DD as local date to avoid UTC timezone shifts
+    parseDateKey(dateString) {
+        const [year, month, day] = String(dateString || '').split('-').map(Number);
+        if (year && month && day) {
+            return new Date(year, month - 1, day);
+        }
+        return new Date(dateString);
     }
 
     // Logout user

@@ -331,12 +331,19 @@ class SidebarController {
             // Check for deadlines (in a real app, this would come from user data)
             const hasDeadline = this.checkForDeadlines(cellDate);
             const isCritical = this.isCriticalDeadline(cellDate);
+            const hasExtendedTask = this.hasExtendedTask(cellDate);
 
-            if (isCritical) {
+            if (isCritical && !hasExtendedTask) {
                 dayCell.classList.add('deadline');
                 const dot = document.createElement('div');
                 dot.className = 'event-dot';
                 dot.style.background = 'var(--danger)';
+                dayCell.querySelector('.event-dots').appendChild(dot);
+            } else if (hasExtendedTask) {
+                dayCell.classList.add('extended-task');
+                const dot = document.createElement('div');
+                dot.className = 'event-dot';
+                dot.style.background = 'var(--info)';
                 dayCell.querySelector('.event-dots').appendChild(dot);
             } else if (hasDeadline) {
                 dayCell.classList.add('has-task');
@@ -372,15 +379,25 @@ class SidebarController {
     checkForDeadlines(date) {
         if (!window.dashboardApp || !window.dashboardApp.tasks) return false;
         
-        const dateStr = date.toISOString().split('T')[0];
+        const dateStr = this.getDateKey(date);
         return window.dashboardApp.tasks.some(task => task.dueDate === dateStr);
+    }
+
+    // Check if a date has tasks that were extended
+    hasExtendedTask(date) {
+        if (!window.dashboardApp || !window.dashboardApp.tasks) return false;
+
+        const dateStr = this.getDateKey(date);
+        return window.dashboardApp.tasks.some(task =>
+            task.dueDate === dateStr && Array.isArray(task.extensions) && task.extensions.length > 0
+        );
     }
 
     // Check if a date has critical deadlines (check against actual overdue/due-soon tasks)
     isCriticalDeadline(date) {
         if (!window.dashboardApp || !window.dashboardApp.tasks) return false;
         
-        const dateStr = date.toISOString().split('T')[0];
+        const dateStr = this.getDateKey(date);
         const today = new Date();
         today.setHours(0, 0, 0, 0);
         
@@ -409,7 +426,7 @@ class SidebarController {
             day: 'numeric'
         });
         
-        const dateStr = date.toISOString().split('T')[0];
+        const dateStr = this.getDateKey(date);
         
         // Get tasks for this date
         let tasksForDate = [];
@@ -419,6 +436,14 @@ class SidebarController {
         
         // Show popup with tasks
         this.showDateTasksPopup(formattedDate, dateStr, tasksForDate);
+    }
+
+    // Format a Date object as YYYY-MM-DD in local time
+    getDateKey(date) {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
     }
 
     // Show cute popup with tasks for a specific date
