@@ -6,6 +6,7 @@ class SidebarController {
         this.currentPage = 'dashboard';
         this.menuToggle = null;
         this.sidebar = null;
+        this.extensionRangeDateKeys = new Set();
         
         this.init();
     }
@@ -322,16 +323,22 @@ class SidebarController {
             dayCell.innerHTML = `<div class="day-number">${day}</div><div class="event-dots" aria-hidden="true"></div>`;
 
             const cellDate = new Date(year, month, day);
+            const cellDateKey = this.getDateKey(cellDate);
 
             // Check if it's today
             if (cellDate.toDateString() === today.toDateString()) {
                 dayCell.classList.add('today');
             }
 
+            if (this.extensionRangeDateKeys.has(cellDateKey)) {
+                dayCell.classList.add('extension-range');
+            }
+
             // Check for deadlines (in a real app, this would come from user data)
             const hasDeadline = this.checkForDeadlines(cellDate);
             const isCritical = this.isCriticalDeadline(cellDate);
             const hasExtendedTask = this.hasExtendedTask(cellDate);
+            const hasOnlyCompletedTasks = this.hasOnlyCompletedTasks(cellDate);
 
             if (isCritical && !hasExtendedTask) {
                 dayCell.classList.add('deadline');
@@ -344,6 +351,12 @@ class SidebarController {
                 const dot = document.createElement('div');
                 dot.className = 'event-dot';
                 dot.style.background = 'var(--info)';
+                dayCell.querySelector('.event-dots').appendChild(dot);
+            } else if (hasOnlyCompletedTasks) {
+                dayCell.classList.add('completed-task');
+                const dot = document.createElement('div');
+                dot.className = 'event-dot';
+                dot.style.background = 'var(--success)';
                 dayCell.querySelector('.event-dots').appendChild(dot);
             } else if (hasDeadline) {
                 dayCell.classList.add('has-task');
@@ -389,8 +402,19 @@ class SidebarController {
 
         const dateStr = this.getDateKey(date);
         return window.dashboardApp.tasks.some(task =>
-            task.dueDate === dateStr && Array.isArray(task.extensions) && task.extensions.length > 0
+            task.dueDate === dateStr && !task.completed && Array.isArray(task.extensions) && task.extensions.length > 0
         );
+    }
+
+    // Check if all tasks on a date are completed
+    hasOnlyCompletedTasks(date) {
+        if (!window.dashboardApp || !window.dashboardApp.tasks) return false;
+
+        const dateStr = this.getDateKey(date);
+        const tasksForDate = window.dashboardApp.tasks.filter(task => task.dueDate === dateStr);
+
+        if (tasksForDate.length === 0) return false;
+        return tasksForDate.every(task => task.completed);
     }
 
     // Check if a date has critical deadlines (check against actual overdue/due-soon tasks)
@@ -433,9 +457,43 @@ class SidebarController {
         if (window.dashboardApp && window.dashboardApp.tasks) {
             tasksForDate = window.dashboardApp.tasks.filter(task => task.dueDate === dateStr);
         }
+
+        // Highlight date span from original due date to current extended due date.
+        this.extensionRangeDateKeys = this.getExtensionRangeDateKeys(tasksForDate);
+        this.renderCalendar();
         
         // Show popup with tasks
         this.showDateTasksPopup(formattedDate, dateStr, tasksForDate);
+    }
+
+    // Collect date keys that belong to extension spans for clicked-date tasks
+    getExtensionRangeDateKeys(tasks) {
+        const dateKeys = new Set();
+
+        const extendedTasks = (tasks || []).filter(task =>
+            Array.isArray(task.extensions) && task.extensions.length > 0
+        );
+
+        extendedTasks.forEach(task => {
+            const totalExtensionDays = task.extensions.reduce((sum, extension) => {
+                const days = Number(extension.days) || 0;
+                return sum + days;
+            }, 0);
+
+            if (totalExtensionDays <= 0) return;
+
+            const currentDueDate = this.parseDateKey(task.dueDate);
+            const originalDueDate = this.parseDateKey(task.dueDate);
+            originalDueDate.setDate(originalDueDate.getDate() - totalExtensionDays);
+
+            const walker = new Date(originalDueDate);
+            while (walker <= currentDueDate) {
+                dateKeys.add(this.getDateKey(walker));
+                walker.setDate(walker.getDate() + 1);
+            }
+        });
+
+        return dateKeys;
     }
 
     // Format a Date object as YYYY-MM-DD in local time
@@ -444,6 +502,15 @@ class SidebarController {
         const month = String(date.getMonth() + 1).padStart(2, '0');
         const day = String(date.getDate()).padStart(2, '0');
         return `${year}-${month}-${day}`;
+    }
+
+    // Parse YYYY-MM-DD as local date to avoid UTC shifts
+    parseDateKey(dateString) {
+        const [year, month, day] = String(dateString || '').split('-').map(Number);
+        if (year && month && day) {
+            return new Date(year, month - 1, day);
+        }
+        return new Date(dateString);
     }
 
     // Show cute popup with tasks for a specific date

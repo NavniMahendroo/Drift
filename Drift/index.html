@@ -910,6 +910,19 @@
             border-color: rgba(59, 130, 246, 0.25);
         }
 
+        .calendar-day.completed-task {
+            background: linear-gradient(135deg, var(--success-light), var(--success));
+            color: white;
+            font-weight: 600;
+            border-color: rgba(16, 185, 129, 0.25);
+        }
+
+        .calendar-day.extension-range {
+            background: #dbeafe;
+            color: #0f172a;
+            border-color: #93c5fd;
+        }
+
         /* Extensions Page */
         .extensions-container {
             background: var(--card-gradient);
@@ -1661,8 +1674,20 @@
                             <span>Critical Deadline</span>
                         </div>
                         <div style="display: flex; align-items: center; gap: 8px;">
+                            <div style="width: 20px; height: 20px; border-radius: 4px; background: var(--info);"></div>
+                            <span>Extended Task</span>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 8px;">
                             <div style="width: 20px; height: 20px; border-radius: 4px; background: var(--warning);"></div>
-                            <span>Has Tasks</span>
+                            <span>Pending Task</span>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <div style="width: 20px; height: 20px; border-radius: 4px; background: var(--success);"></div>
+                            <span>Completed Task</span>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <div style="width: 20px; height: 20px; border-radius: 4px; background: #dbeafe; border: 1px solid #93c5fd;"></div>
+                            <span>Extension Range</span>
                         </div>
                         <div style="display: flex; align-items: center; gap: 8px;">
                             <div style="width: 20px; height: 20px; border-radius: 4px; border: 2px solid var(--primary);"></div>
